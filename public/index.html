@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="module" src="https://uchuukaeru.github.io/qrcode-generator/es/qr-code.js"></script>
+        <script type="module" src="https://uchuukaeru.github.io/PotetoHashJs/PotetoHash.js"></script>
+        <style>
+            body{
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="audio">
+            <div>
+                <button id="rec_start">録音開始</button>
+                <button id="rec_stop">録音終了</button>
+                <button id="rec_delete">録音削除</button>
+            </div>
+            <audio id="audio" controls></audio>
+        </div>
+        <div>
+            <button id="dig-up" disabled>イモを掘る</button>
+            <button id="roasted" disabled>イモを焼く</button>
+            <div class="container" id="container">
+                <div>
+                    <poteto-hash id="poteto"></poteto-hash>
+                </div>
+                <div>
+                    <canvas id="canvas"></canvas>
+                </div>
+                <div>
+                    <qr-code id="qr-code"></qr-code>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript" src="./record.js"></script>
+    <script>
+        const digUpButton = document.getElementById("dig-up");
+        const roastedButton = document.getElementById("roasted");
+
+        window.onload = (event) => {
+            digUpButton.disabled = "disabled";
+            roastedButton.disabled = "disabled";
+        }
+
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const container = document.getElementById("container");
+        const qr = document.getElementById("qr-code");
+        const poteto = document.getElementById("poteto"); 
+        digUpButton.onclick = async () => {
+            if(!audio.src){
+                console.error("audio is null.");
+                return;
+            }
+            const encoder = new TextEncoder();
+            const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(audio.src).buffer))
+
+            poteto.value = Uint8ToHex(hash);
+            roastedButton.disabled = null;
+        }
+
+        roastedButton.onclick = async () => {
+            poteto.isRoasted = true;
+            if(!audio.src){
+                console.error("audio is null.");
+                return;
+            }
+            // audio.play();
+            let source = audioContext.createMediaElementSource(audio);
+            let analyser = audioContext.createAnalyser();
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", data))
+            // console.log(data)
+            
+            const qrData = {
+                potato: Uint8ToHex(hash),
+                url: location.href,
+            }
+            qr.value = JSON.stringify(qrData);
+
+            // console.log(hashHex)
+            function draw() {
+                const ctx = document.getElementById('canvas').getContext('2d');
+                ctx.fillStyle = "#FFA500";
+                requestAnimationFrame(draw);
+                
+                analyser.getByteFrequencyData(hash);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (var i = 0; i < hash.length; i++) {
+                    ctx.fillRect(i * 10, canvas.height, 10, -hash[i]);
+                }
+            }
+            audio.play();
+            draw();
+        }
+
+        const Uint8ToHex = (uint8Array) => {
+            return Array.from(uint8Array)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join("");
+        }
+    </script>
+</html>
