@@ -1,8 +1,33 @@
 import { serveDir } from "https://deno.land/std@0.180.0/http/file_server.ts";
+import { ulid } from "https://deno.land/x/ulid@v0.3.0/mod.ts";
 
 Deno.serve({ port: 8080 }, async (req) => {
+  const kv = await Deno.openKv();
   const pathname = new URL(req.url).pathname;
   console.log(pathname);
+
+  if (req.method === "POST" && pathname === "/api/sell-poteto") {
+    const body = await req.json();
+    const poteto = body["poteto"];
+    const id = ulid();
+    kv.set(["potetos",id], poteto);
+
+    return OK();
+  }
+
+  if (req.method === "GET" && pathname === "/api/selling-poteto") {
+    // return OK();
+    const iterator = kv.list({
+      prefix: ["potetos"],
+    })
+    
+    const list = [];
+    for await (const item of iterator){
+      list.push(item.value);
+    }
+
+    return resultData(list)
+  }
 
   return serveDir(req, {
     fsRoot: "public",
@@ -11,3 +36,15 @@ Deno.serve({ port: 8080 }, async (req) => {
     enableCors: true,
   });
 });
+
+const OK = () => {
+  return new Response(JSON.stringify({status: "ok"}), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+const resultData = (data) => {
+  return new Response(JSON.stringify(data), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
