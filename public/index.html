@@ -40,8 +40,15 @@
         <span><a href="https://github.com/uchuukaeru/web-app-voice">src on GitHub</a></span>
     </footer>
     <script type="module" src="./record.js"></script>
-    <script type="module" src="./qr.js"></script>
     <script>
+        const setQrValue = (data) => {
+            const qr = document.getElementById("qr-code");
+            const qrData = {
+                potato: data,
+                url: location.href,
+            };
+            qr.value = JSON.stringify(qrData);
+        }
         const digUpButton = document.getElementById("dig-up");
         const roastedButton = document.getElementById("roasted");
         const sellPotetoButton = document.getElementById("sell");
