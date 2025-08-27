@@ -40,6 +40,7 @@
         <span><a href="https://github.com/uchuukaeru/web-app-voice">src on GitHub</a></span>
     </footer>
     <script type="module" src="./record.js"></script>
+    <script type="module" src="./qr.js"></script>
     <script>
         const digUpButton = document.getElementById("dig-up");
         const roastedButton = document.getElementById("roasted");
@@ -51,11 +52,11 @@
             roastedButton.disabled = "disabled";
             sellPotetoButton.disabled = "disabled";
             eatPotetoButton.disabled = "disabled";
+            setQrValue("")
         }
 
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const container = document.getElementById("container");
-        const qr = document.getElementById("qr-code");
         const poteto = document.getElementById("poteto"); 
         digUpButton.onclick = async () => {
             digUpButton.disabled = "disabled";
@@ -86,11 +87,7 @@
             analyser.connect(audioContext.destination);
             const data = new Uint8Array(analyser.frequencyBinCount);
             
-            const qrData = {
-                potato: Uint8ToHex(HashUint8(blobUrl)),
-                url: location.href,
-            }
-            qr.value = JSON.stringify(qrData);
+            setQrValue(Uint8ToHex(HashUint8(blobUrl)));
 
             let drawId;
             const ctx = document.getElementById('canvas').getContext('2d');
