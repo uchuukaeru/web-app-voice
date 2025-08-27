@@ -16,7 +16,7 @@
                 <button id="rec_stop">録音終了</button>
                 <button id="rec_delete">録音削除</button>
             </div>
-            <audio id="audio" controls></audio>
+            <audio id="audio" controls src="./街の道路.mp3"></audio>
         </div>
         <div>
             <button id="dig-up" disabled>イモを掘る</button>
@@ -26,7 +26,7 @@
                     <poteto-hash id="poteto"></poteto-hash>
                 </div>
                 <div>
-                    <canvas id="canvas"></canvas>
+                    <canvas id="canvas" width=128px height=70px></canvas>
                 </div>
                 <div>
                     <qr-code id="qr-code"></qr-code>
@@ -44,7 +44,7 @@
         const roastedButton = document.getElementById("roasted");
 
         window.onload = (event) => {
-            digUpButton.disabled = "disabled";
+            // digUpButton.disabled = "disabled";
             roastedButton.disabled = "disabled";
         }
 
@@ -53,53 +53,104 @@
         const qr = document.getElementById("qr-code");
         const poteto = document.getElementById("poteto"); 
         digUpButton.onclick = async () => {
-            if(!audio.src){
+            const blobUrl = audio.src;
+            if(!blobUrl){
                 console.error("audio is null.");
                 return;
             }
-            const encoder = new TextEncoder();
-            const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(audio.src).buffer))
+            const hash = await HashUint8(blobUrl);
 
             poteto.value = Uint8ToHex(hash);
+            poteto.isRoasted = false;
             roastedButton.disabled = null;
         }
 
         roastedButton.onclick = async () => {
             poteto.isRoasted = true;
-            if(!audio.src){
+            const blobUrl = audio.src;
+            if(!blobUrl){
                 console.error("audio is null.");
                 return;
             }
             // audio.play();
-            let source = audioContext.createMediaElementSource(audio);
-            let analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaElementSource(audio);
+            const analyser = audioContext.createAnalyser();
             source.connect(analyser);
             analyser.connect(audioContext.destination);
-
             const data = new Uint8Array(analyser.frequencyBinCount);
-            const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", data))
-            // console.log(data)
             
             const qrData = {
-                potato: Uint8ToHex(hash),
+                potato: Uint8ToHex(HashUint8(blobUrl)),
                 url: location.href,
             }
             qr.value = JSON.stringify(qrData);
 
-            // console.log(hashHex)
+            let drawId;
+            const ctx = document.getElementById('canvas').getContext('2d');
             function draw() {
-                const ctx = document.getElementById('canvas').getContext('2d');
-                ctx.fillStyle = "#FFA500";
-                requestAnimationFrame(draw);
+                console.log("draw")
+                // ctx.fillStyle = "#FFA5FF";
+                drawId = requestAnimationFrame(draw);
                 
-                analyser.getByteFrequencyData(hash);
+                analyser.getByteFrequencyData(data);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (var i = 0; i < hash.length; i++) {
-                    ctx.fillRect(i * 10, canvas.height, 10, -hash[i]);
+                const cN =64;
+                const r = compres(data, cN);
+                for (var i = 0; i < r.length; i++) {
+                    // ctx.fillRect(i * 10, canvas.height, 10, -data[i]);
+                    drawFire(ctx, i, canvas.height, r[i], 8);
                 }
             }
+
+            const compres = (data, compresNum) => {
+                const result = [];
+                for (let i = 0; i < data.length; i+= compresNum){
+                    const chunk = data.slice(i, i+compresNum);
+                    const sum = chunk.reduce((acc, val) => acc + val, 0);
+                    const average = (sum / compresNum) + 1;
+                    // const pow = Math.pow(2, Math.round(Math.log2(average)))
+                    result.push(Math.round(Math.log2(average)));
+                }
+                return new Uint8Array(result);
+            }
+
+            audio.onended = () => {
+                cancelAnimationFrame(drawId);
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+            }
+            audio.onpause = () => {
+                cancelAnimationFrame(drawId);
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+            }
+
             audio.play();
             draw();
+        }
+
+        // 最大８段階（９段階設定しておく）
+        // 赤、赤、赤、赤、オレンジ、オレンジ、黄色、黄色、白    
+        const colorList = [
+            "rgb(255 0 0 / 25%)",
+            "rgb(255 0 0 / 50%)",
+            "rgb(255 0 0)",
+            "rgb(255 0 0)",
+            "rgb(255 64 0)",
+            "rgb(255 128 0)",
+            "rgb(255 192 0)",
+            "rgb(255 255 0)",
+            "rgb(255 255 255)",
+        ];
+        const drawFire = (ctx, i, height, data, pixelsize) => {
+            for (let n = 0; n < data; n++) {
+                console.log(n)
+                ctx.fillStyle = colorList[Math.abs(n - data)];
+                ctx.fillRect(i * pixelsize, height - n * pixelsize, pixelsize, pixelsize);
+            }
+        }
+
+        const HashUint8 = async (data) => {
+            const encoder = new TextEncoder();
+            return new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(data).buffer));
         }
 
         const Uint8ToHex = (uint8Array) => {
