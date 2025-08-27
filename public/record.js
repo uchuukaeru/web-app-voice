@@ -1,7 +1,7 @@
 const audio = document.getElementById("audio");
 
 let mediaRecorder; 
-let url;
+let objectUrl;
 document.getElementById("rec_start").onclick = async () => {
     digUpButton.disabled = "disabled";
     roastedButton.disabled = "disabled";
@@ -26,17 +26,16 @@ document.getElementById("rec_start").onclick = async () => {
 
     mediaRecorder.onstop = async () => {
         const blob = new Blob(chanks, {type: "audio/webm"});
-        const arrayBuffer = await blob.arrayBuffer();
         console.log("recording success!");
 
-        url = URL.createObjectURL(blob);
-        audio.src = url;
+        objectUrl = URL.createObjectURL(blob);
+        audio.src = objectUrl;
         digUpButton.disabled = null
     }
 
     mediaRecorder.onstart = async () => {
         try {
-            URL.revokeObjectURL(url);
+            URL.revokeObjectURL(objectUrl);
         } catch (ignored) {}
     }
 
@@ -54,10 +53,4 @@ document.getElementById("rec_stop").onclick = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
         mediaRecorder.stop();
     }
-}
-
-document.getElementById("rec_delete").onclick = () => {
-    try {
-        URL.revokeObjectURL(url);
-    } catch (ignored) {}
 }
