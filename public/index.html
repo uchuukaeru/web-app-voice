@@ -16,7 +16,7 @@
                 <button id="rec_stop">録音終了</button>
                 <button id="rec_delete">録音削除</button>
             </div>
-            <audio id="audio" controls src="./街の道路.mp3"></audio>
+            <audio id="audio" controls></audio>
         </div>
         <div>
             <button id="dig-up" disabled>イモを掘る</button>
@@ -143,6 +143,7 @@
         const drawFire = (ctx, i, height, data, pixelsize) => {
             for (let n = 0; n < data; n++) {
                 console.log(n)
+                // 下になるほど黄色寄りの色になる
                 ctx.fillStyle = colorList[Math.abs(n - data)];
                 ctx.fillRect(i * pixelsize, height - n * pixelsize, pixelsize, pixelsize);
             }
