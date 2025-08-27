@@ -5,11 +5,8 @@
         <script type="module" src="https://uchuukaeru.github.io/PotetoHashJs/PotetoHash.js"></script>
         <link rel="stylesheet" href="./main.css">
     </head>
-    <header>
-        <h1>Imotion(仮)</h1>
-        <hr>
-    </header>
     <body>
+        <div id="header"></div>
         <div class="audio">
             <div>
                 <button id="rec_start">録音開始</button>
@@ -34,11 +31,8 @@
                 </div>
             </div>
         </div>
+        <div id="footer"></div>
     </body>
-    <footer>
-        <hr>
-        <span><a href="https://github.com/uchuukaeru/web-app-voice">src on GitHub</a></span>
-    </footer>
     <script type="module" src="./record.js"></script>
     <script>
         const setQrValue = (data) => {
@@ -176,4 +170,5 @@
         }
     </script>
     <script type="module" src="./comsume.js"></script>
+    <script type="module" src="loadHeaderFooter.js"></script>
 </html>
