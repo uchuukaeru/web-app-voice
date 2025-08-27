@@ -4,7 +4,6 @@ import { ulid } from "https://deno.land/x/ulid@v0.3.0/mod.ts";
 Deno.serve({ port: 8080 }, async (req) => {
   const kv = await Deno.openKv();
   const pathname = new URL(req.url).pathname;
-  console.log(pathname);
 
   if (req.method === "POST" && pathname === "/api/sell-poteto") {
     const body = await req.json();
