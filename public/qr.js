@@ -7,7 +7,7 @@ export const qrData = (data) => {
     return JSON.stringify(
         {
             poteto: data,
-            url: location.href,
+            url: location.origin,
         }
     )
 }
