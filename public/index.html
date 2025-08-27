@@ -140,26 +140,6 @@
             draw();
         }
 
-        const deletePoteto = () => {
-            sellPotetoButton.disabled = "disabled"
-            eatPotetoButton.disabled = "disabled"
-            try {
-                URL.revokeObjectURL(objectUrl);
-            } catch (ignored) {}
-            audio.removeAttribute("src");
-            poteto.value = null;
-            poteto.isRoasted = false;
-        }
-
-        sellPotetoButton.onclick = () => {
-            const potetoHash = poteto.getAttribute("value")
-            deletePoteto();
-        }
-
-        eatPotetoButton.onclick = () => {
-            deletePoteto();
-        }
-
         // 最大８段階（９段階設定しておく）
         // 赤、赤、赤、赤、オレンジ、オレンジ、黄色、黄色、白    
         const colorList = [
@@ -192,4 +172,5 @@
                 .join("");
         }
     </script>
+    <script type="module" src="./comsume.js"></script>
 </html>
