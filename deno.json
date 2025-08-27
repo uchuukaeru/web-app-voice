@@ -1,0 +1,5 @@
+{
+    "tasks": {
+        "start": "deno run --watch -A --unstable-kv server.js"
+    }
+}
