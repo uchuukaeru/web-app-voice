@@ -20,6 +20,8 @@
         <div>
             <button id="dig-up" disabled>イモを掘る</button>
             <button id="roasted" disabled>イモを焼く</button>
+            <button id="sell" disable>焼きイモを売る</button>
+            <button id="eat" disable>焼きイモを食べる</button>
             <div class="container" id="container">
                 <div>
                     <poteto-hash id="poteto" value="null"></poteto-hash>
@@ -41,10 +43,14 @@
     <script>
         const digUpButton = document.getElementById("dig-up");
         const roastedButton = document.getElementById("roasted");
+        const sellPotetoButton = document.getElementById("sell");
+        const eatPotetoButton = document.getElementById("eat");
 
         window.onload = (event) => {
-            // digUpButton.disabled = "disabled";
+            digUpButton.disabled = "disabled";
             roastedButton.disabled = "disabled";
+            sellPotetoButton.disabled = "disabled";
+            eatPotetoButton.disabled = "disabled";
         }
 
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -52,6 +58,7 @@
         const qr = document.getElementById("qr-code");
         const poteto = document.getElementById("poteto"); 
         digUpButton.onclick = async () => {
+            digUpButton.disabled = "disabled";
             const blobUrl = audio.src;
             if(!blobUrl){
                 console.error("audio is null.");
@@ -65,7 +72,8 @@
         }
 
         roastedButton.onclick = async () => {
-            poteto.isRoasted = true;
+            digUpButton.disabled = "disabled";
+            roastedButton.disabled = "disabled";
             const blobUrl = audio.src;
             if(!blobUrl){
                 console.error("audio is null.");
@@ -115,15 +123,41 @@
 
             audio.onended = () => {
                 cancelAnimationFrame(drawId);
-                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                poteto.isRoasted = true;
+                digUpButton.disabled = "disabled";
+                roastedButton.disabled = "disabled";
+                sellPotetoButton.disabled = null;
+                eatPotetoButton.disabled = null;
             }
             audio.onpause = () => {
                 cancelAnimationFrame(drawId);
-                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
 
             audio.play();
             draw();
+        }
+
+        const deletePoteto = () => {
+            sellPotetoButton.disabled = "disabled"
+            eatPotetoButton.disabled = "disabled"
+            try {
+                URL.revokeObjectURL(objectUrl);
+            } catch (ignored) {}
+            audio.removeAttribute("src");
+            poteto.value = null;
+            poteto.isRoasted = false;
+        }
+
+        sellPotetoButton.onclick = () => {
+            const potetoHash = poteto.getAttribute("value")
+            deletePoteto();
+        }
+
+        eatPotetoButton.onclick = () => {
+            deletePoteto();
         }
 
         // 最大８段階（９段階設定しておく）
@@ -141,7 +175,6 @@
         ];
         const drawFire = (ctx, i, height, data, pixelsize) => {
             for (let n = 0; n < data; n++) {
-                console.log(n)
                 // 下になるほど黄色寄りの色になる
                 ctx.fillStyle = colorList[Math.abs(n - data)];
                 ctx.fillRect(i * pixelsize, height - n * pixelsize, pixelsize, pixelsize);
