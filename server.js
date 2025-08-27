@@ -1,9 +1,15 @@
 import { serveDir } from "https://deno.land/std@0.180.0/http/file_server.ts";
 import { ulid } from "https://deno.land/x/ulid@v0.3.0/mod.ts";
+import { serveFile } from "https://deno.land/std/http/file_server.ts";
 
+const fsRoot ="public"
 Deno.serve({ port: 8080 }, async (req) => {
   const kv = await Deno.openKv();
   const pathname = new URL(req.url).pathname;
+
+  if (req.method === "GET" && pathname === "/sales") {
+    return await serveFile(req, `${fsRoot}/sales.html`);
+  }
 
   if (req.method === "POST" && pathname === "/api/sell-poteto") {
     const body = await req.json();
@@ -29,7 +35,7 @@ Deno.serve({ port: 8080 }, async (req) => {
   }
 
   return serveDir(req, {
-    fsRoot: "public",
+    fsRoot: fsRoot,
     urlRoot: "",
     showDirListing: true,
     enableCors: true,
