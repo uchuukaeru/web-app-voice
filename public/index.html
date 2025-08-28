@@ -76,6 +76,9 @@
         }
 
         roastedButton.onclick = async () => {
+            if (audioContext.state === "suspended") {
+                await audioContext.resume();
+            }
             digUpButton.disabled = "disabled";
             roastedButton.disabled = "disabled";
             const blobUrl = audio.src;
@@ -86,12 +89,13 @@
             // audio.play();
             let source;
             const analyser = audioContext.createAnalyser();
-            try {
-                await waitCanPlay();
+            await waitCanPlay();
+            if (!audio._sourceCreated) {
                 source = audioContext.createMediaElementSource(audio);
                 source.connect(analyser);
                 analyser.connect(audioContext.destination);
-            } catch (ignored) {}
+                audio._sourceCreated = true;
+            }
             
             const data = new Uint8Array(analyser.frequencyBinCount);
             
