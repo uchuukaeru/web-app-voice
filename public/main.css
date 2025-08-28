@@ -58,3 +58,8 @@ header > .nav > * + * {
 .nav_item:hover {
     background-color: rgb(197, 182, 166);
 }
+
+button {
+    border-radius: 10px;
+    font-size: 20px;
+}
