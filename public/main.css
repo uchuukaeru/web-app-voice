@@ -1,7 +1,45 @@
 body {
     text-align: center;
+    background-color: rgb(197, 182, 166);
+    color: rgb(121, 103, 108);
+    text-shadow: 1px 1px rgb(60, 42, 48);
+}
+
+.header {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 header {
     display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: rgb(234, 228, 210);
+}
+
+header > .nav {
+    margin-left: auto;
+    display: flex;
+    flex: none;
+}
+
+a {
+    text-shadow: none;
+}
+
+header > .nav > * + * {
+    margin-left: 60px;
+}
+
+.nav_item {
+    background-color: rgb(234, 228, 210);
+}
+
+.nav_item:hover {
+    background-color: rgb(197, 182, 166);
 }
