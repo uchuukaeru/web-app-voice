@@ -4,6 +4,7 @@
         <script type="module" src="https://uchuukaeru.github.io/qrcode-generator/es/qr-code.js"></script>
         <script type="module" src="https://uchuukaeru.github.io/PotetoHashJs/PotetoHash.js"></script>
         <link rel="stylesheet" href="./main.css">
+        <title>音焼きイモ - 畑</title>
     </head>
     <body>
         <div id="header"></div>
@@ -58,7 +59,8 @@
 
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const container = document.getElementById("container");
-        const poteto = document.getElementById("poteto"); 
+        const poteto = document.getElementById("poteto");
+        const audio = document.getElementById("audio");
         digUpButton.onclick = async () => {
             digUpButton.disabled = "disabled";
             const blobUrl = audio.src;
@@ -82,10 +84,15 @@
                 return;
             }
             // audio.play();
-            const source = audioContext.createMediaElementSource(audio);
+            let source;
             const analyser = audioContext.createAnalyser();
-            source.connect(analyser);
-            analyser.connect(audioContext.destination);
+            try {
+                await waitCanPlay();
+                source = audioContext.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+            } catch (ignored) {}
+            
             const data = new Uint8Array(analyser.frequencyBinCount);
             
             setQrValue(Uint8ToHex(HashUint8(blobUrl)));
@@ -93,6 +100,7 @@
             let drawId;
             const ctx = document.getElementById('canvas').getContext('2d');
             function draw() {
+                console.log("roast-draw")
                 // ctx.fillStyle = "#FFA5FF";
                 drawId = requestAnimationFrame(draw);
                 
@@ -132,7 +140,15 @@
                 cancelAnimationFrame(drawId);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
-
+            audio.onplay = () => {
+                console.log("onplay")
+            }
+            
+            const waitCanPlay = () => {
+                return new Promise(resolve => {
+                     audio.addEventListener("canplaythrough", () => resolve(), { once: true });
+                })
+            }
             audio.play();
             draw();
         }
