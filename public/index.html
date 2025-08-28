@@ -34,6 +34,7 @@
         </div>
         <div id="footer"></div>
     </body>
+    <script type="module" src="loadHeaderFooter.js"></script>
     <script type="module" src="./record.js"></script>
     <script>
         const setQrValue = (data) => {
@@ -44,6 +45,11 @@
             };
             qr.value = JSON.stringify(qrData);
         }
+        const waitCanPlay = () => {
+                return new Promise(resolve => {
+                     audio.addEventListener("canplaythrough", () => resolve(), { once: true });
+                })
+            }
         const digUpButton = document.getElementById("dig-up");
         const roastedButton = document.getElementById("roasted");
         const sellPotetoButton = document.getElementById("sell");
@@ -72,6 +78,7 @@
 
             poteto.value = Uint8ToHex(hash);
             poteto.isRoasted = false;
+            await waitCanPlay();
             roastedButton.disabled = null;
         }
 
@@ -89,13 +96,7 @@
             // audio.play();
             let source;
             const analyser = audioContext.createAnalyser();
-            const waitCanPlay = () => {
-                return new Promise(resolve => {
-                     audio.addEventListener("canplaythrough", () => resolve(), { once: true });
-                })
-            }
             
-            await waitCanPlay();
             if (!audio._sourceCreated) {
                 source = audioContext.createMediaElementSource(audio);
                 source.connect(analyser);
@@ -191,5 +192,4 @@
         }
     </script>
     <script type="module" src="./comsume.js"></script>
-    <script type="module" src="loadHeaderFooter.js"></script>
 </html>
