@@ -1,10 +1,15 @@
 const audio = document.getElementById("audio");
+const startButton = document.getElementById("rec_start");
+const stopButton = document.getElementById("rec_stop");
 
 let mediaRecorder; 
 let objectUrl;
-document.getElementById("rec_start").onclick = async () => {
+startButton.onclick = async () => {
     digUpButton.disabled = "disabled";
     roastedButton.disabled = "disabled";
+    startButton.disabled = "disabled";
+    stopButton.disabled = null;
+    startButton.innerHTML = "録音中";
 
     const stream = await navigator.mediaDevices.getUserMedia({audio: true,video: false})
         .then((stream) => {
@@ -49,7 +54,10 @@ document.getElementById("rec_start").onclick = async () => {
     }, 30*1000);
 }
 
-document.getElementById("rec_stop").onclick = () => {
+stopButton.onclick = () => {
+    startButton.disabled = null;
+    stopButton.disabled = "disabled";
+    startButton.innerHTML = "録音開始";
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
         mediaRecorder.stop();
     }
