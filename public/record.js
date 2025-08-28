@@ -19,21 +19,21 @@ document.getElementById("rec_start").onclick = async () => {
         return;
     }
 
-    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm; codecs=opus" });
     const chanks = [];
 
     mediaRecorder.ondataavailable = e => chanks.push(e.data);
 
-    mediaRecorder.onstop = async () => {
+    mediaRecorder.onstop = () => {
         const blob = new Blob(chanks, {type: "audio/webm"});
         console.log("recording success!");
 
         objectUrl = URL.createObjectURL(blob);
-        audio.src = objectUrl;
+        audio.setAttribute("src", objectUrl);
         digUpButton.disabled = null
     }
 
-    mediaRecorder.onstart = async () => {
+    mediaRecorder.onstart = () => {
         try {
             URL.revokeObjectURL(objectUrl);
         } catch (ignored) {}
