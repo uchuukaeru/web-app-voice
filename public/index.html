@@ -11,7 +11,7 @@
         <div class="audio">
             <div>
                 <button id="rec_start">録音開始</button>
-                <button id="rec_stop">録音終了</button>
+                <button id="rec_stop" disabled>録音終了</button>
             </div>
             <audio id="audio" controls></audio>
         </div>
@@ -89,6 +89,12 @@
             // audio.play();
             let source;
             const analyser = audioContext.createAnalyser();
+            const waitCanPlay = () => {
+                return new Promise(resolve => {
+                     audio.addEventListener("canplaythrough", () => resolve(), { once: true });
+                })
+            }
+            
             await waitCanPlay();
             if (!audio._sourceCreated) {
                 source = audioContext.createMediaElementSource(audio);
@@ -148,11 +154,6 @@
                 console.log("onplay")
             }
             
-            const waitCanPlay = () => {
-                return new Promise(resolve => {
-                     audio.addEventListener("canplaythrough", () => resolve(), { once: true });
-                })
-            }
             audio.play();
             draw();
         }
