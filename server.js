@@ -2,6 +2,8 @@ import { serveDir } from "https://deno.land/std@0.180.0/http/file_server.ts";
 import { ulid } from "https://deno.land/x/ulid@v0.3.0/mod.ts";
 import { serveFile } from "https://deno.land/std/http/file_server.ts";
 
+const dataReg = new RegExp("[0-9a-f]{64}");
+
 const fsRoot ="public"
 Deno.serve({ port: 8080 }, async (req) => {
   const kv = await Deno.openKv();
@@ -14,6 +16,9 @@ Deno.serve({ port: 8080 }, async (req) => {
   if (req.method === "POST" && pathname === "/api/sell-poteto") {
     const body = await req.json();
     const poteto = body["poteto"];
+    if(dataReg.test(poteto) === false) {
+      return OK();
+    }
     const id = ulid();
     kv.set(["potetos",id], poteto);
 
