@@ -35,7 +35,6 @@ startButton.onclick = async () => {
 
         objectUrl = URL.createObjectURL(blob);
         audio.setAttribute("src", objectUrl);
-        digUpButton.disabled = null
     }
 
     mediaRecorder.onstart = () => {
@@ -54,11 +53,22 @@ startButton.onclick = async () => {
     }, 30*1000);
 }
 
-stopButton.onclick = () => {
-    startButton.disabled = null;
-    stopButton.disabled = "disabled";
-    startButton.innerHTML = "録音開始";
+const waitCanPlay = () => {
+    console.log("wait")
+    return new Promise(resolve => {
+        audio.addEventListener("canplaythrough", () => resolve(), { once: true });
+    });
+}
+
+stopButton.onclick = async () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
         mediaRecorder.stop();
     }
+    await waitCanPlay();
+    audio.play();
+    audio.currentTime = 0;
+    digUpButton.disabled = null
+    startButton.disabled = null;
+    stopButton.disabled = "disabled";
+    startButton.innerHTML = "録音開始";
 }
