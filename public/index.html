@@ -46,10 +46,10 @@
             qr.value = JSON.stringify(qrData);
         }
         const waitCanPlay = () => {
-                return new Promise(resolve => {
-                     audio.addEventListener("canplaythrough", () => resolve(), { once: true });
-                })
-            }
+            return new Promise(resolve => {
+                audio.addEventListener("canplaythrough", () => resolve(), { once: true });
+            });
+        }
         const digUpButton = document.getElementById("dig-up");
         const roastedButton = document.getElementById("roasted");
         const sellPotetoButton = document.getElementById("sell");
@@ -157,6 +157,7 @@
             
             audio.currentTime = 0;
             audio.play();
+            draw();
         }
 
         // 最大８段階（９段階設定しておく）
