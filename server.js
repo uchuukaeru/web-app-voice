@@ -16,7 +16,7 @@ Deno.serve({ port: 8080 }, async (req) => {
   if (req.method === "POST" && pathname === "/api/sell-poteto") {
     const body = await req.json();
     const poteto = body["poteto"];
-    if(dataReg.test(poteto) === false) {
+    if(!dataReg.test(poteto)) {
       return OK();
     }
     const id = ulid();
