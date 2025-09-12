@@ -1,17 +1,17 @@
 .poteto-card {
-    width: 185px;
-    height: 300px;
-    margin: 10px;
-    border: 1px solid #000;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
+  width: 185px;
+  height: 300px;
+  margin: 10px;
+  border: 1px solid #000;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .shelf {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }

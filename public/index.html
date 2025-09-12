@@ -1,196 +1,215 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <script type="module" src="https://uchuukaeru.github.io/qrcode-generator/es/qr-code.js"></script>
-        <script type="module" src="https://uchuukaeru.github.io/PotetoHashJs/PotetoHash.js"></script>
-        <link rel="stylesheet" href="./main.css">
-        <title>音焼きイモ - 畑</title>
-    </head>
-    <body>
-        <div id="header"></div>
-        <div class="audio">
-            <div>
-                <button id="rec_start">録音開始</button>
-                <button id="rec_stop" disabled>録音終了</button>
-            </div>
-            <audio id="audio" controls></audio>
+  <head>
+    <script
+      type="module"
+      src="https://uchuukaeru.github.io/qrcode-generator/es/qr-code.js"
+    ></script>
+    <script
+      type="module"
+      src="https://uchuukaeru.github.io/PotetoHashJs/PotetoHash.js"
+    ></script>
+    <link rel="stylesheet" href="./main.css">
+    <title>音焼きイモ - 畑</title>
+  </head>
+  <body>
+    <div id="header"></div>
+    <div class="audio">
+      <div>
+        <button id="rec_start">録音開始</button>
+        <button id="rec_stop" disabled>録音終了</button>
+      </div>
+      <audio id="audio" controls></audio>
+    </div>
+    <div>
+      <button id="dig-up" disabled>イモを掘る</button>
+      <button id="roasted" disabled>イモを焼く</button>
+      <button id="sell" disable>焼きイモを売る</button>
+      <button id="eat" disable>焼きイモを食べる</button>
+      <div class="container" id="container">
+        <div>
+          <poteto-hash id="poteto" value="null"></poteto-hash>
         </div>
         <div>
-            <button id="dig-up" disabled>イモを掘る</button>
-            <button id="roasted" disabled>イモを焼く</button>
-            <button id="sell" disable>焼きイモを売る</button>
-            <button id="eat" disable>焼きイモを食べる</button>
-            <div class="container" id="container">
-                <div>
-                    <poteto-hash id="poteto" value="null"></poteto-hash>
-                </div>
-                <div>
-                    <canvas id="canvas" width=128px height=70px></canvas>
-                </div>
-                <div>
-                    <qr-code id="qr-code"></qr-code>
-                </div>
-            </div>
+          <canvas id="canvas" width="128px" height="70px"></canvas>
         </div>
-        <div id="footer"></div>
-    </body>
-    <script type="module" src="loadHeaderFooter.js"></script>
-    <script type="module" src="./record.js"></script>
-    <script>
-        const setQrValue = (data) => {
-            const qr = document.getElementById("qr-code");
-            const qrData = {
-                potato: data,
-                url: location.href,
-            };
-            qr.value = JSON.stringify(qrData);
+        <div>
+          <qr-code id="qr-code"></qr-code>
+        </div>
+      </div>
+    </div>
+    <div id="footer"></div>
+  </body>
+  <script type="module" src="loadHeaderFooter.js"></script>
+  <script type="module" src="./record.js"></script>
+  <script>
+    const setQrValue = (data) => {
+      const qr = document.getElementById("qr-code");
+      const qrData = {
+        potato: data,
+        url: location.href,
+      };
+      qr.value = JSON.stringify(qrData);
+    };
+    const waitCanPlay = () => {
+      return new Promise((resolve) => {
+        audio.addEventListener("canplaythrough", () => resolve(), {
+          once: true,
+        });
+      });
+    };
+    const digUpButton = document.getElementById("dig-up");
+    const roastedButton = document.getElementById("roasted");
+    const sellPotetoButton = document.getElementById("sell");
+    const eatPotetoButton = document.getElementById("eat");
+
+    window.onload = (event) => {
+      digUpButton.disabled = "disabled";
+      roastedButton.disabled = "disabled";
+      sellPotetoButton.disabled = "disabled";
+      eatPotetoButton.disabled = "disabled";
+      setQrValue("");
+    };
+
+    let audioContext =
+      new (window.AudioContext || window.webkitAudioContext)();
+    const container = document.getElementById("container");
+    const poteto = document.getElementById("poteto");
+    const audio = document.getElementById("audio");
+    digUpButton.onclick = async () => {
+      digUpButton.disabled = "disabled";
+      const blobUrl = audio.src;
+      if (!blobUrl) {
+        console.error("audio is null.");
+        return;
+      }
+      const hash = await HashUint8(blobUrl);
+
+      poteto.value = Uint8ToHex(hash);
+      poteto.isRoasted = false;
+      await waitCanPlay();
+      roastedButton.disabled = null;
+    };
+
+    roastedButton.onclick = async () => {
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+      digUpButton.disabled = "disabled";
+      roastedButton.disabled = "disabled";
+      const blobUrl = audio.src;
+      if (!blobUrl) {
+        console.error("audio is null.");
+        return;
+      }
+      // audio.play();
+      let source;
+      const analyser = audioContext.createAnalyser();
+
+      if (!audio._sourceCreated) {
+        source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        audio._sourceCreated = true;
+      }
+
+      const data = new Uint8Array(analyser.frequencyBinCount);
+
+      setQrValue(Uint8ToHex(HashUint8(blobUrl)));
+
+      let drawId;
+      const ctx = document.getElementById("canvas").getContext("2d");
+      function draw() {
+        console.log("roast-draw");
+        // ctx.fillStyle = "#FFA5FF";
+        drawId = requestAnimationFrame(draw);
+
+        analyser.getByteFrequencyData(data);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cN = 64;
+        const r = compres(data, cN);
+        for (var i = 0; i < r.length; i++) {
+          // ctx.fillRect(i * 10, canvas.height, 10, -data[i]);
+          drawFire(ctx, i, canvas.height, r[i], 8);
         }
-        const waitCanPlay = () => {
-            return new Promise(resolve => {
-                audio.addEventListener("canplaythrough", () => resolve(), { once: true });
-            });
+      }
+
+      const compres = (data, compresNum) => {
+        const result = [];
+        for (let i = 0; i < data.length; i += compresNum) {
+          const chunk = data.slice(i, i + compresNum);
+          const sum = chunk.reduce((acc, val) => acc + val, 0);
+          const average = (sum / compresNum) + 1;
+          // const pow = Math.pow(2, Math.round(Math.log2(average)))
+          result.push(Math.round(Math.log2(average)));
         }
-        const digUpButton = document.getElementById("dig-up");
-        const roastedButton = document.getElementById("roasted");
-        const sellPotetoButton = document.getElementById("sell");
-        const eatPotetoButton = document.getElementById("eat");
+        return new Uint8Array(result);
+      };
 
-        window.onload = (event) => {
-            digUpButton.disabled = "disabled";
-            roastedButton.disabled = "disabled";
-            sellPotetoButton.disabled = "disabled";
-            eatPotetoButton.disabled = "disabled";
-            setQrValue("")
-        }
+      audio.onended = () => {
+        cancelAnimationFrame(drawId);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const container = document.getElementById("container");
-        const poteto = document.getElementById("poteto");
-        const audio = document.getElementById("audio");
-        digUpButton.onclick = async () => {
-            digUpButton.disabled = "disabled";
-            const blobUrl = audio.src;
-            if(!blobUrl){
-                console.error("audio is null.");
-                return;
-            }
-            const hash = await HashUint8(blobUrl);
+        poteto.isRoasted = true;
+        digUpButton.disabled = "disabled";
+        roastedButton.disabled = "disabled";
+        sellPotetoButton.disabled = null;
+        eatPotetoButton.disabled = null;
+      };
+      audio.onpause = () => {
+        cancelAnimationFrame(drawId);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      };
+      audio.onplay = () => {
+        draw();
+      };
 
-            poteto.value = Uint8ToHex(hash);
-            poteto.isRoasted = false;
-            await waitCanPlay();
-            roastedButton.disabled = null;
-        }
+      audio.currentTime = 0;
+      audio.play();
+      draw();
+    };
 
-        roastedButton.onclick = async () => {
-            if (audioContext.state === "suspended") {
-                await audioContext.resume();
-            }
-            digUpButton.disabled = "disabled";
-            roastedButton.disabled = "disabled";
-            const blobUrl = audio.src;
-            if(!blobUrl){
-                console.error("audio is null.");
-                return;
-            }
-            // audio.play();
-            let source;
-            const analyser = audioContext.createAnalyser();
-            
-            if (!audio._sourceCreated) {
-                source = audioContext.createMediaElementSource(audio);
-                source.connect(analyser);
-                analyser.connect(audioContext.destination);
-                audio._sourceCreated = true;
-            }
-            
-            const data = new Uint8Array(analyser.frequencyBinCount);
-            
-            setQrValue(Uint8ToHex(HashUint8(blobUrl)));
+    // 最大８段階（９段階設定しておく）
+    // 赤、赤、赤、赤、オレンジ、オレンジ、黄色、黄色、白
+    const colorList = [
+      "rgb(255 0 0 / 25%)",
+      "rgb(255 0 0 / 50%)",
+      "rgb(255 0 0)",
+      "rgb(255 0 0)",
+      "rgb(255 64 0)",
+      "rgb(255 128 0)",
+      "rgb(255 192 0)",
+      "rgb(255 255 0)",
+      "rgb(255 255 255)",
+    ];
+    const drawFire = (ctx, i, height, data, pixelsize) => {
+      for (let n = 0; n < data; n++) {
+        // 下になるほど黄色寄りの色になる
+        ctx.fillStyle = colorList[Math.abs(n - data)];
+        ctx.fillRect(
+          i * pixelsize,
+          height - n * pixelsize,
+          pixelsize,
+          pixelsize,
+        );
+      }
+    };
 
-            let drawId;
-            const ctx = document.getElementById('canvas').getContext('2d');
-            function draw() {
-                console.log("roast-draw")
-                // ctx.fillStyle = "#FFA5FF";
-                drawId = requestAnimationFrame(draw);
-                
-                analyser.getByteFrequencyData(data);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                const cN =64;
-                const r = compres(data, cN);
-                for (var i = 0; i < r.length; i++) {
-                    // ctx.fillRect(i * 10, canvas.height, 10, -data[i]);
-                    drawFire(ctx, i, canvas.height, r[i], 8);
-                }
-            }
+    const HashUint8 = async (data) => {
+      const encoder = new TextEncoder();
+      return new Uint8Array(
+        await crypto.subtle.digest(
+          "SHA-256",
+          encoder.encode(data).buffer,
+        ),
+      );
+    };
 
-            const compres = (data, compresNum) => {
-                const result = [];
-                for (let i = 0; i < data.length; i+= compresNum){
-                    const chunk = data.slice(i, i+compresNum);
-                    const sum = chunk.reduce((acc, val) => acc + val, 0);
-                    const average = (sum / compresNum) + 1;
-                    // const pow = Math.pow(2, Math.round(Math.log2(average)))
-                    result.push(Math.round(Math.log2(average)));
-                }
-                return new Uint8Array(result);
-            }
-
-            audio.onended = () => {
-                cancelAnimationFrame(drawId);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                poteto.isRoasted = true;
-                digUpButton.disabled = "disabled";
-                roastedButton.disabled = "disabled";
-                sellPotetoButton.disabled = null;
-                eatPotetoButton.disabled = null;
-            }
-            audio.onpause = () => {
-                cancelAnimationFrame(drawId);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-            audio.onplay = () => {
-                draw();
-            }
-            
-            audio.currentTime = 0;
-            audio.play();
-            draw();
-        }
-
-        // 最大８段階（９段階設定しておく）
-        // 赤、赤、赤、赤、オレンジ、オレンジ、黄色、黄色、白    
-        const colorList = [
-            "rgb(255 0 0 / 25%)",
-            "rgb(255 0 0 / 50%)",
-            "rgb(255 0 0)",
-            "rgb(255 0 0)",
-            "rgb(255 64 0)",
-            "rgb(255 128 0)",
-            "rgb(255 192 0)",
-            "rgb(255 255 0)",
-            "rgb(255 255 255)",
-        ];
-        const drawFire = (ctx, i, height, data, pixelsize) => {
-            for (let n = 0; n < data; n++) {
-                // 下になるほど黄色寄りの色になる
-                ctx.fillStyle = colorList[Math.abs(n - data)];
-                ctx.fillRect(i * pixelsize, height - n * pixelsize, pixelsize, pixelsize);
-            }
-        }
-
-        const HashUint8 = async (data) => {
-            const encoder = new TextEncoder();
-            return new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(data).buffer));
-        }
-
-        const Uint8ToHex = (uint8Array) => {
-            return Array.from(uint8Array)
-                .map((b) => b.toString(16).padStart(2, '0'))
-                .join("");
-        }
-    </script>
-    <script type="module" src="./comsume.js"></script>
+    const Uint8ToHex = (uint8Array) => {
+      return Array.from(uint8Array)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    };
+  </script>
+  <script type="module" src="./comsume.js"></script>
 </html>
