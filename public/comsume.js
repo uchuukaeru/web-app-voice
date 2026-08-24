@@ -8,6 +8,13 @@ const deletePoteto = () => {
     URL.revokeObjectURL(objectUrl);
   } catch (ignored) {}
   audio.removeAttribute("src");
+  audio.load();
+
+  audio.onended = null;
+  audio.onpause = null;
+  audio.onplay = null
+
+  audio.removeAttribute("src");
   poteto.value = null;
   poteto.isRoasted = false;
   setQrValue("");
