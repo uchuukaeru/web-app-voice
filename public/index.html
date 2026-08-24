@@ -85,9 +85,24 @@
       }
       const hash = await HashUint8(blobUrl);
 
+      // 再生完了を待つPromiseを先に仕掛けてから再生開始
+      const waitEnded = new Promise((resolve) => {
+        audio.addEventListener("ended", () => resolve(), { once: true });
+      });
+
+      audio.currentTime = 0;
+      try {
+        await audio.play();
+      } catch (e) {
+        console.error("play failed:", e);
+        digUpButton.disabled = null; // 再生失敗時は掘り直せるように戻す
+        return;
+      }
+
+      await waitEnded; // 再生が最後まで終わるのを待つ
+
       poteto.value = Uint8ToHex(hash);
       poteto.isRoasted = false;
-      await waitCanPlay();
       roastedButton.disabled = null;
     };
 
