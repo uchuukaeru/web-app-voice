@@ -27,9 +27,17 @@ startButton.onclick = async () => {
     return;
   }
 
-  mediaRecorder = new MediaRecorder(stream, {
-    mimeType: "audio/webm; codecs=opus",
-  });
+  const mimeType = MediaRecorder.isTypeSupported("audio/webm; codecs=opus")
+    ? "audio/webm; codecs=opus"
+    : ""; // 空にするとブラウザのデフォルトが使われる
+  try {
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: mimeType,
+    });
+  } catch(e) {
+    console.error("MediaRecorder作成失敗:", e);
+    return;
+  }
   const chanks = [];
 
   mediaRecorder.ondataavailable = (e) => chanks.push(e.data);
