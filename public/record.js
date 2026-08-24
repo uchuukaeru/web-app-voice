@@ -43,8 +43,9 @@ startButton.onclick = async () => {
   mediaRecorder.ondataavailable = (e) => chanks.push(e.data);
 
   mediaRecorder.onstop = () => {
-    const blob = new Blob(chanks, { type: "audio/webm" });
-    console.log("recording success!");
+    const actualType = mediaRecorder.mimeType || "audio/webm";
+    const blob = new Blob(chanks, { type: actualType });
+    console.log("recording success!", actualType);
 
     objectUrl = URL.createObjectURL(blob);
     audio.setAttribute("src", objectUrl);
@@ -85,3 +86,7 @@ stopButton.onclick = async () => {
   stopButton.disabled = "disabled";
   startButton.innerHTML = "録音開始";
 };
+
+audio.onerror = () => {
+  console.error("audio element error: ",audio.error)
+}
