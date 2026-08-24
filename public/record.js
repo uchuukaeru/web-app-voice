@@ -86,7 +86,3 @@ stopButton.onclick = async () => {
   stopButton.disabled = "disabled";
   startButton.innerHTML = "録音開始";
 };
-
-audio.onerror = () => {
-  console.error("audio element error: ",audio.error)
-}
