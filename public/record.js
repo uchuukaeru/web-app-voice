@@ -5,6 +5,10 @@ const stopButton = document.getElementById("rec_stop");
 let mediaRecorder;
 let objectUrl;
 startButton.onclick = async () => {
+  audio.onended = null;
+  audio.onpause = null;
+  audio.onplay = null;
+  
   digUpButton.disabled = "disabled";
   roastedButton.disabled = "disabled";
   startButton.disabled = "disabled";
